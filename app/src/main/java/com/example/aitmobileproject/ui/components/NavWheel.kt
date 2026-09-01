@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Style
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import com.example.aitmobileproject.ui.theme.MainOrange
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -39,7 +41,7 @@ fun NavWheel(
     onClick: () -> Unit = {},
     onActionSelected: (String) -> Unit = {},
 ) {
-    val orange = Color(0xFFEC6C03)
+    val orange = MainOrange
     val black = Color.Black
     val haptic = LocalHapticFeedback.current
     
@@ -49,9 +51,10 @@ fun NavWheel(
     
     val actions = remember {
         listOf(
-            NavAction(id = "school", icon = Icons.Default.School, angle = -75f),
-            NavAction(id = "settings", icon = Icons.Default.Settings, angle = -45f),
-            NavAction(id = "profile", icon = Icons.Default.Person, angle = -15f),
+            NavAction(id = "flashcards", icon = Icons.Default.Style, angle = -80f),
+            NavAction(id = "school", icon = Icons.Default.School, angle = -60f),
+            NavAction(id = "settings", icon = Icons.Default.Settings, angle = -40f),
+            NavAction(id = "profile", icon = Icons.Default.Person, angle = -20f),
         )
     }
     
@@ -110,8 +113,18 @@ fun NavWheel(
                                 change.consume()
                             },
                             onDragEnd = {
-                                if (selectedActionIndex != -1) {
-                                    onActionSelected(actions[selectedActionIndex].id)
+                                // Calculate selection immediately on release to be safe
+                                val finalIndex = if (!isExpanded) -1
+                                else {
+                                    actions.indices.minByOrNull { i ->
+                                        var diff = kotlin.math.abs(actions[i].angle - currentAngle)
+                                        if (diff > 180) diff = 360 - diff
+                                        diff
+                                    } ?: -1
+                                }
+                                
+                                if (finalIndex != -1) {
+                                    onActionSelected(actions[finalIndex].id)
                                 }
                                 isExpanded = false
                             },

@@ -19,31 +19,31 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .padding(16.dp)
+            .systemBarsPadding() // Handles obstruction by status/navigation bars
+            .padding(top = 0.dp, start = 6.dp, end = 6.dp, bottom = 0.dp) // Bottom padding removed
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 0.dp), // Bottom padding removed
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            GreetingCard(name = "Max", modifier = Modifier.height(220.dp))
-
+            GreetingCard(name = "Max", modifier = Modifier.height(210.dp)) // Smaller box
             Row(
                 modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                // Left Column - wider so the boxes meet slightly off-centered
+                // Left Column - widened to fill gap (58%)
                 Column(
                     modifier = Modifier
-                        .weight(0.55f)
+                        .weight(0.58f)
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     ActionTile(
                         subtitle = "Open",
                         title = "File\nBrowser",
-                        modifier = Modifier.fillMaxWidth().height(100.dp)
+                        modifier = Modifier.fillMaxWidth().height(130.dp) // Bigger box
                     )
                     
                     // Tall box for NavWheel at the bottom-left
@@ -57,29 +57,32 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                     ) {
                         NavWheel(
                             modifier = Modifier.align(Alignment.BottomStart),
-                            onClick = onNavigateToFlashcards
+                            onClick = onNavigateToFlashcards,
+                            onActionSelected = { actionId ->
+                                if (actionId == "flashcards") onNavigateToFlashcards()
+                            }
                         )
                     }
                 }
 
-                // Right Column - narrower
+                // Right Column - thinner (42%)
                 Column(
                     modifier = Modifier
-                        .weight(0.45f)
+                        .weight(0.42f)
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(160.dp)
+                            .height(210.dp) // Taller top box
                             .background(LightBeige, RoundedCornerShape(26.dp))
                     )
                     
                     ProgressTile(
                         progress = 0.75f,
                         label = "Start\nTopic\nRevision",
-                        modifier = Modifier.fillMaxWidth().height(240.dp)
+                        modifier = Modifier.fillMaxWidth().height(248.dp) // ~10% smaller height
                     )
 
                     Box(

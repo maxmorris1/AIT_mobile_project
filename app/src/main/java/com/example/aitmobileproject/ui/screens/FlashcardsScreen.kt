@@ -93,12 +93,27 @@ fun FlashcardsScreen(onNavigateBack: () -> Unit = {}) {
             }
         }
 
-        // Nav Wheel Overlay
-        NavWheel(
+        // Nav Wheel Container matching Dashboard style
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(x = (-2).dp, y = 2.dp),
-            onClick = { onNavigateBack() }
-        )
+                .padding(16.dp) // Offset from the screen edge
+                .size(width = 160.dp, height = 300.dp) // Approximate size to match dashboard look
+                .clip(RoundedCornerShape(26.dp))
+                .background(LightBeige),
+            contentAlignment = Alignment.BottomStart
+        ) {
+            NavWheel(
+                modifier = Modifier.align(Alignment.BottomStart),
+                onClick = { onNavigateBack() },
+                onActionSelected = { actionId ->
+                    if (actionId == "flashcards") {
+                        // Already on flashcards screen
+                    } else if (actionId == "school") {
+                        onNavigateBack() // Go back to dashboard for school
+                    }
+                }
+            )
+        }
     }
 }
