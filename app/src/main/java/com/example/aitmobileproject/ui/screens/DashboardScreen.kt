@@ -72,14 +72,14 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(130.dp)
+                            .height(160.dp)
                             .background(LightBeige, RoundedCornerShape(26.dp))
                     )
                     
                     ProgressTile(
                         progress = 0.75f,
                         label = "Start\nTopic\nRevision",
-                        modifier = Modifier.fillMaxWidth().height(220.dp)
+                        modifier = Modifier.fillMaxWidth().height(240.dp)
                     )
 
                     Box(

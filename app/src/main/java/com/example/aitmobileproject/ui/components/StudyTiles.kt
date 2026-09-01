@@ -93,58 +93,74 @@ fun ProgressTile(
     Box(
         modifier = modifier
             .background(LightBeige, RoundedCornerShape(26.dp))
-            .padding(16.dp),
+            .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(90.dp)) {
+            Spacer(modifier = Modifier.height(12.dp)) // Moved circle down more
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(105.dp)) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Full dark circle
                     drawArc(
-                        color = Color.Black.copy(alpha = 0.1f),
+                        color = Color.Black,
                         startAngle = 0f,
                         sweepAngle = 360f,
                         useCenter = false,
-                        style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
                     )
+                    // Orange progress arc
                     drawArc(
                         color = Orange,
                         startAngle = -90f,
                         sweepAngle = 360f * progress,
                         useCenter = false,
-                        style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .offset(x = (-0.5).dp) // Shifted right slightly
+                        .padding(top = 2.dp)
+                ) {
                    Text(
                        text = "Perc",
                        fontFamily = InstrumentSerifFontFamily,
-                       fontSize = 10.sp
+                       fontSize = 9.sp,
+                       fontWeight = FontWeight.Bold,
+                       color = Color.Black
                    )
                    Text(
                        text = "${(progress * 100).toInt()}",
                        fontFamily = InstrumentSerifFontFamily,
-                       fontSize = 32.sp,
-                       fontWeight = FontWeight.Bold
+                       fontSize = 38.sp,
+                       fontWeight = FontWeight.Bold,
+                       color = Color.Black,
+                       modifier = Modifier.padding(start = 0.dp, end = 4.dp) // Smaller gap between Perc and 7
                    )
                    Text(
                        text = "ent",
                        fontFamily = InstrumentSerifFontFamily,
-                       fontSize = 10.sp
+                       fontSize = 9.sp,
+                       fontWeight = FontWeight.Bold,
+                       color = Color.Black
                    )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp)) // Moved text up slightly
             
             val lines = label.split("\n")
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy((-12).dp) // Even tighter spacing
+            ) {
                 if (lines.isNotEmpty()) {
                     Text(
                         text = lines[0],
                         fontFamily = InstrumentSerifFontFamily,
-                        fontSize = 22.sp,
+                        fontSize = 12.sp,
                         color = Color.Black,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 22.sp
+                        textAlign = TextAlign.Center
                     )
                 }
                 if (lines.size > 1) {
@@ -152,11 +168,11 @@ fun ProgressTile(
                         Text(
                             text = line,
                             fontFamily = InstrumentSerifFontFamily,
-                            fontSize = 44.sp,
+                            fontSize = 32.sp,
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
-                            lineHeight = 40.sp
+                            lineHeight = 28.sp // Reduced line height
                         )
                     }
                 }

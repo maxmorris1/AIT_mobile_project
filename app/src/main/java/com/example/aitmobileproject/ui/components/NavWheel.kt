@@ -68,7 +68,7 @@ fun NavWheel(
 
     LaunchedEffect(selectedActionIndex) {
         if (selectedActionIndex != -1) {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
 
