@@ -1,17 +1,17 @@
 package com.example.aitmobileproject.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.aitmobileproject.ui.components.*
+import com.example.aitmobileproject.ui.theme.AITMobileProjectTheme
 
 @Composable
 fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
@@ -51,13 +51,12 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                            .background(LightBeige, RoundedCornerShape(26.dp)),
+                            .clip(RoundedCornerShape(26.dp))
+                            .background(LightBeige),
                         contentAlignment = Alignment.BottomStart
                     ) {
                         NavWheel(
-                            modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .offset(x = 12.dp, y = 12.dp),
+                            modifier = Modifier.align(Alignment.BottomStart),
                             onClick = onNavigateToFlashcards
                         )
                     }
@@ -92,5 +91,13 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardPreview() {
+    AITMobileProjectTheme {
+        DashboardScreen()
     }
 }
