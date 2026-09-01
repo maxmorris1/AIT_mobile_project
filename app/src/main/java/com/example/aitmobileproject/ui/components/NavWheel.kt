@@ -6,7 +6,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -18,12 +18,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -36,20 +37,21 @@ data class NavAction(val id: String, val icon: ImageVector, val angle: Float)
 fun NavWheel(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
-    onActionSelected: (String) -> Unit = {}
+    onActionSelected: (String) -> Unit = {},
 ) {
     val orange = Color(0xFFEC6C03)
     val black = Color.Black
+    val haptic = LocalHapticFeedback.current
     
-    var isExpanded by remember { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(value = false) }
     // Initial angle pointing towards the middle icon (Settings at -45)
-    var currentAngle by remember { mutableStateOf(-45f) } 
+    var currentAngle by remember { mutableFloatStateOf(value = -45f) } 
     
     val actions = remember {
         listOf(
-            NavAction("school", Icons.Default.School, -75f),
-            NavAction("settings", Icons.Default.Settings, -45f),
-            NavAction("profile", Icons.Default.Person, -15f)
+            NavAction(id = "school", icon = Icons.Default.School, angle = -75f),
+            NavAction(id = "settings", icon = Icons.Default.Settings, angle = -45f),
+            NavAction(id = "profile", icon = Icons.Default.Person, angle = -15f),
         )
     }
     
@@ -64,6 +66,12 @@ fun NavWheel(
         }
     }
 
+    LaunchedEffect(selectedActionIndex) {
+        if (selectedActionIndex != -1) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+    }
+
     val blackCircleSize by animateDpAsState(
         targetValue = if (isExpanded) 180.dp else 100.dp,
         animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
@@ -74,37 +82,44 @@ fun NavWheel(
         modifier = modifier.wrapContentSize(),
         contentAlignment = Alignment.BottomStart
     ) {
-        // The Black Circle
+        // Container that stays fixed in the corner
+        // Its center is where the dial and expansion will be anchored
         Box(
             modifier = Modifier
-                .offset(x = (-12).dp, y = 12.dp)
-                .size(blackCircleSize)
-                .background(black, CircleShape)
-                .pointerInput(Unit) {
-                    detectTapGestures(onDoubleTap = { onClick() })
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = { isExpanded = true },
-                        onDrag = { change, _ ->
-                            val centerX = size.width / 2f
-                            val centerY = size.height / 2f
-                            val relativePosition = Offset(change.position.x - centerX, change.position.y - centerY)
-                            val angleRad = atan2(relativePosition.y, relativePosition.x)
-                            currentAngle = (angleRad * 180 / PI).toFloat()
-                            change.consume()
-                        },
-                        onDragEnd = {
-                            if (selectedActionIndex != -1) {
-                                onActionSelected(actions[selectedActionIndex].id)
-                            }
-                            isExpanded = false
-                        },
-                        onDragCancel = { isExpanded = false }
-                    )
-                },
+                .offset(x = (-58).dp, y = 58.dp)
+                .size(200.dp),
             contentAlignment = Alignment.Center
         ) {
+            // The Black Circle - Grows from the center of the 200.dp container
+            Box(
+                modifier = Modifier
+                    .size(blackCircleSize)
+                    .background(black, CircleShape)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onDoubleTap = { onClick() })
+                    }
+                    .pointerInput(Unit) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = { isExpanded = true },
+                            onDrag = { change, _ ->
+                                val centerX = size.width / 2f
+                                val centerY = size.height / 2f
+                                val relativePosition = Offset(change.position.x - centerX, change.position.y - centerY)
+                                val angleRad = atan2(relativePosition.y, relativePosition.x)
+                                currentAngle = (angleRad * 180f / PI.toFloat())
+                                change.consume()
+                            },
+                            onDragEnd = {
+                                if (selectedActionIndex != -1) {
+                                    onActionSelected(actions[selectedActionIndex].id)
+                                }
+                                isExpanded = false
+                            },
+                            onDragCancel = { isExpanded = false }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
             // Icons on a curve
             if (isExpanded) {
                 actions.forEachIndexed { index, action ->
@@ -137,18 +152,21 @@ fun NavWheel(
             Box(
                 modifier = Modifier
                     .size(75.dp)
-                    .rotate(animatedRotation + 45f)
+                    .rotate(animatedRotation + 90f)
                     .background(orange, CircleShape),
                 contentAlignment = Alignment.TopCenter
             ) {
-                // Notch to show direction
-                Box(
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .size(6.dp)
-                        .background(Color.White, CircleShape)
-                )
+                // Notch to show direction - Only visible when expanded
+                if (isExpanded) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .size(6.dp)
+                            .background(Color.White, CircleShape)
+                    )
+                }
             }
         }
     }
+}
 }

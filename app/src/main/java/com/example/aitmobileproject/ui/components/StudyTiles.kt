@@ -134,15 +134,33 @@ fun ProgressTile(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = label,
-                fontFamily = InstrumentSerifFontFamily,
-                fontSize = 18.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                lineHeight = 20.sp
-            )
+            
+            val lines = label.split("\n")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (lines.isNotEmpty()) {
+                    Text(
+                        text = lines[0],
+                        fontFamily = InstrumentSerifFontFamily,
+                        fontSize = 22.sp,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 22.sp
+                    )
+                }
+                if (lines.size > 1) {
+                    lines.drop(1).forEach { line ->
+                        Text(
+                            text = line,
+                            fontFamily = InstrumentSerifFontFamily,
+                            fontSize = 44.sp,
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 40.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }
