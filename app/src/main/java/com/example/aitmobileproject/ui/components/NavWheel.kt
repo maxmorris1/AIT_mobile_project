@@ -99,7 +99,7 @@ fun NavWheel(
                     .size(blackCircleSize)
                     .background(black, CircleShape)
                     .pointerInput(Unit) {
-                        detectTapGestures(onDoubleTap = { onClick() })
+                        detectTapGestures(onTap = { onClick() })
                     }
                     .pointerInput(Unit) {
                         detectDragGesturesAfterLongPress(

@@ -97,7 +97,7 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
         ) {
             NavWheel(
                 modifier = Modifier.align(Alignment.BottomStart),
-                onClick = onNavigateToFlashcards,
+                onClick = { /* Already on Dashboard */ },
                 onActionSelected = { actionId ->
                     if (actionId == "flashcards") onNavigateToFlashcards()
                 }
