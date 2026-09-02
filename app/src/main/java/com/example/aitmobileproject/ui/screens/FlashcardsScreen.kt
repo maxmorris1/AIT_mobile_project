@@ -24,12 +24,13 @@ fun FlashcardsScreen(onNavigateBack: () -> Unit = {}) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .padding(16.dp)
+            .systemBarsPadding()
+            .padding(top = 0.dp, start = 6.dp, end = 6.dp, bottom = 0.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 0.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             // Top Row
@@ -94,11 +95,13 @@ fun FlashcardsScreen(onNavigateBack: () -> Unit = {}) {
         }
 
         // Nav Wheel Container matching Dashboard style
+        // Positioned exactly where the bottom-left tile is on the Dashboard
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(16.dp) // Offset from the screen edge
-                .size(width = 160.dp, height = 300.dp) // Approximate size to match dashboard look
+                .padding(start = 4.dp, bottom = 0.dp) // Matches dashboard inner column padding
+                .fillMaxWidth(0.58f) // Matches dashboard left column weight
+                .height(280.dp)
                 .clip(RoundedCornerShape(26.dp))
                 .background(LightBeige),
             contentAlignment = Alignment.BottomStart
@@ -107,10 +110,8 @@ fun FlashcardsScreen(onNavigateBack: () -> Unit = {}) {
                 modifier = Modifier.align(Alignment.BottomStart),
                 onClick = { onNavigateBack() },
                 onActionSelected = { actionId ->
-                    if (actionId == "flashcards") {
-                        // Already on flashcards screen
-                    } else if (actionId == "school") {
-                        onNavigateBack() // Go back to dashboard for school
+                    if (actionId != "flashcards") {
+                        onNavigateBack()
                     }
                 }
             )
