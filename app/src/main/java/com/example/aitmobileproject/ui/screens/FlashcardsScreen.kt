@@ -30,7 +30,7 @@ fun FlashcardsScreen(onNavigateBack: () -> Unit = {}) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 0.dp),
+                .padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 0.dp), // Increased side padding for boxes
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             // Top Row
@@ -96,14 +96,13 @@ fun FlashcardsScreen(onNavigateBack: () -> Unit = {}) {
 
         // Nav Wheel Container matching Dashboard style
         // Positioned exactly where the bottom-left tile is on the Dashboard
+        // Background removed to prevent beige slivers in the corner
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 4.dp, bottom = 0.dp) // Matches dashboard inner column padding
                 .fillMaxWidth(0.58f) // Matches dashboard left column weight
-                .height(280.dp)
-                .clip(RoundedCornerShape(26.dp))
-                .background(LightBeige),
+                .height(280.dp),
             contentAlignment = Alignment.BottomStart
         ) {
             NavWheel(

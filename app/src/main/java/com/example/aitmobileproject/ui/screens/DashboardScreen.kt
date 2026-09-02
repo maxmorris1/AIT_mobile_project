@@ -20,20 +20,21 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
             .fillMaxSize()
             .background(Color.Black)
             .systemBarsPadding() // Handles obstruction by status/navigation bars
-            .padding(top = 0.dp, start = 6.dp, end = 6.dp, bottom = 0.dp) // Bottom padding removed
+            .padding(top = 0.dp, start = 6.dp, end = 6.dp, bottom = 0.dp)
     ) {
+        // Main Content Column - Padded inwards by 10.dp for the tiles
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 0.dp), // Bottom padding removed
+                .padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 0.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            GreetingCard(name = "Max", modifier = Modifier.height(210.dp)) // Smaller box
+            GreetingCard(name = "Max", modifier = Modifier.height(210.dp))
             Row(
                 modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                // Left Column - widened to fill gap (58%)
+                // Left Column (58%)
                 Column(
                     modifier = Modifier
                         .weight(0.58f)
@@ -43,29 +44,20 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                     ActionTile(
                         subtitle = "Open",
                         title = "File\nBrowser",
-                        modifier = Modifier.fillMaxWidth().height(130.dp) // Bigger box
+                        modifier = Modifier.fillMaxWidth().height(130.dp)
                     )
                     
-                    // Tall box for NavWheel at the bottom-left
+                    // Beige tile that houses the dial area
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
                             .clip(RoundedCornerShape(26.dp))
-                            .background(LightBeige),
-                        contentAlignment = Alignment.BottomStart
-                    ) {
-                        NavWheel(
-                            modifier = Modifier.align(Alignment.BottomStart),
-                            onClick = onNavigateToFlashcards,
-                            onActionSelected = { actionId ->
-                                if (actionId == "flashcards") onNavigateToFlashcards()
-                            }
-                        )
-                    }
+                            .background(LightBeige)
+                    )
                 }
 
-                // Right Column - thinner (42%)
+                // Right Column (42%)
                 Column(
                     modifier = Modifier
                         .weight(0.42f)
@@ -75,7 +67,7 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(210.dp) // Taller top box
+                            .height(210.dp)
                             .background(LightBeige, RoundedCornerShape(26.dp))
                     )
                     
@@ -93,6 +85,23 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                     )
                 }
             }
+        }
+
+        // The Dial - Placed independently of the main Column's 10.dp padding
+        // This keeps it at the 4.dp edge gap, matching its original position
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 4.dp, bottom = 0.dp),
+            contentAlignment = Alignment.BottomStart
+        ) {
+            NavWheel(
+                modifier = Modifier.align(Alignment.BottomStart),
+                onClick = onNavigateToFlashcards,
+                onActionSelected = { actionId ->
+                    if (actionId == "flashcards") onNavigateToFlashcards()
+                }
+            )
         }
     }
 }
