@@ -82,7 +82,7 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                     ProgressTile(
                         progress = 0.75f,
                         label = "Start\nTopic\nRevision",
-                        modifier = Modifier.fillMaxWidth().height(248.dp) // ~10% smaller height
+                        modifier = Modifier.fillMaxWidth().height(235.dp)
                     )
 
                     Box(

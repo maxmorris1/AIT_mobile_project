@@ -51,10 +51,10 @@ fun NavWheel(
     
     val actions = remember {
         listOf(
-            NavAction(id = "flashcards", icon = Icons.Default.Style, angle = -80f),
-            NavAction(id = "school", icon = Icons.Default.School, angle = -60f),
-            NavAction(id = "settings", icon = Icons.Default.Settings, angle = -40f),
-            NavAction(id = "profile", icon = Icons.Default.Person, angle = -20f),
+            NavAction(id = "flashcards", icon = Icons.Default.Style, angle = -105f),
+            NavAction(id = "school", icon = Icons.Default.School, angle = -70f),
+            NavAction(id = "settings", icon = Icons.Default.Settings, angle = -35f),
+            NavAction(id = "profile", icon = Icons.Default.Person, angle = 0f),
         )
     }
     
@@ -76,7 +76,7 @@ fun NavWheel(
     }
 
     val blackCircleSize by animateDpAsState(
-        targetValue = if (isExpanded) 180.dp else 100.dp,
+        targetValue = if (isExpanded) 170.dp else 100.dp,
         animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
         label = "BlackCircleSize"
     )
@@ -138,7 +138,7 @@ fun NavWheel(
                 actions.forEachIndexed { index, action ->
                     val isSelected = index == selectedActionIndex
                     val iconColor by animateColorAsState(if (isSelected) orange else Color.White)
-                    val radius = 70.dp
+                    val radius = 64.dp
                     
                     val angleRad = action.angle * PI / 180
                     val xOffset = (radius.value * cos(angleRad)).dp

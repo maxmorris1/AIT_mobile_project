@@ -98,9 +98,9 @@ fun ActionTile(
 
 @Composable
 fun ProgressTile(
+    modifier: Modifier = Modifier,
     progress: Float,
     label: String,
-    modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
@@ -132,16 +132,15 @@ fun ProgressTile(
             .clickable(
                 interactionSource = interactionSource,
                 indication = null, // No default ripple to keep the custom feel
-                onClick = {
-                    onClick()
-                }
-            )
+            ) {
+                onClick()
+            }
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Spacer(modifier = Modifier.height(18.dp)) // Slightly smaller top gap
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(117.dp)) { // ~10% smaller circle
+            Spacer(modifier = Modifier.height(18.dp)) // Slightly less top space as circle is bigger
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(105.dp)) { // Bigger circle
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     // Full dark circle
                     drawArc(
@@ -149,7 +148,7 @@ fun ProgressTile(
                         startAngle = 0f,
                         sweepAngle = 360f,
                         useCenter = false,
-                        style = Stroke(width = 12.5.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 11.dp.toPx(), cap = StrokeCap.Round)
                     )
                     // Orange progress arc
                     drawArc(
@@ -157,26 +156,26 @@ fun ProgressTile(
                         startAngle = -90f,
                         sweepAngle = 360f * progress,
                         useCenter = false,
-                        style = Stroke(width = 12.5.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 11.dp.toPx(), cap = StrokeCap.Round)
                     )
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .offset(x = (-1).dp) // Adjusted offset
+                        .offset(x = (-1).dp)
                         .padding(top = 2.dp)
                 ) {
                    Text(
                        text = "Perc",
                        fontFamily = InstrumentSerifFontFamily,
-                       fontSize = 9.sp, // ~10% smaller
+                       fontSize = 9.sp,
                        fontWeight = FontWeight.Bold,
                        color = Color.Black
                    )
                    Text(
-                       text = "${(progress * 100).toInt()}",
+                       text = (progress * 100).toInt().toString(),
                        fontFamily = InstrumentSerifFontFamily,
-                       fontSize = 46.sp, // ~10% smaller
+                       fontSize = 40.sp, // Slightly bigger number to match bigger circle
                        fontWeight = FontWeight.Bold,
                        color = Color.Black,
                        modifier = Modifier.padding(start = 0.dp, end = 4.dp)
@@ -184,24 +183,24 @@ fun ProgressTile(
                    Text(
                        text = "ent",
                        fontFamily = InstrumentSerifFontFamily,
-                       fontSize = 9.sp, // ~10% smaller
+                       fontSize = 9.sp,
                        fontWeight = FontWeight.Bold,
                        color = Color.Black
                    )
                 }
             }
-            Spacer(modifier = Modifier.height(11.dp)) // ~10% smaller middle gap
+            Spacer(modifier = Modifier.height(8.dp))
             
             val lines = label.split("\n")
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy((-11).dp)
+                verticalArrangement = Arrangement.spacedBy((-14).dp)
             ) {
                 if (lines.isNotEmpty()) {
                     Text(
                         text = lines[0],
                         fontFamily = InstrumentSerifFontFamily,
-                        fontSize = 11.sp, // ~10% smaller
+                        fontSize = 14.sp,
                         color = Color.Black,
                         textAlign = TextAlign.Center
                     )
@@ -211,16 +210,17 @@ fun ProgressTile(
                         Text(
                             text = line,
                             fontFamily = InstrumentSerifFontFamily,
-                            fontSize = 29.sp, // ~10% smaller
+                            fontSize = 32.sp,
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
-                            lineHeight = 25.sp
+                            lineHeight = 28.sp,
+                            softWrap = false
                         )
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(14.dp)) // ~10% smaller bottom gap
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
