@@ -14,7 +14,10 @@ import com.example.aitmobileproject.ui.components.*
 import com.example.aitmobileproject.ui.theme.AITMobileProjectTheme
 
 @Composable
-fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
+fun DashboardScreen(
+    onNavigateToFlashcards: () -> Unit = {},
+    onNavigateToNotes: () -> Unit = {}
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -100,6 +103,7 @@ fun DashboardScreen(onNavigateToFlashcards: () -> Unit = {}) {
                 onClick = { /* Already on Dashboard */ },
                 onActionSelected = { actionId ->
                     if (actionId == "flashcards") onNavigateToFlashcards()
+                    else if (actionId == "notes") onNavigateToNotes()
                 }
             )
         }

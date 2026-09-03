@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
@@ -51,6 +52,7 @@ fun NavWheel(
     
     val actions = remember {
         listOf(
+            NavAction(id = "notes", icon = Icons.Default.Mic, angle = -140f),
             NavAction(id = "flashcards", icon = Icons.Default.Style, angle = -105f),
             NavAction(id = "school", icon = Icons.Default.School, angle = -70f),
             NavAction(id = "settings", icon = Icons.Default.Settings, angle = -35f),
@@ -76,7 +78,7 @@ fun NavWheel(
     }
 
     val blackCircleSize by animateDpAsState(
-        targetValue = if (isExpanded) 170.dp else 100.dp,
+        targetValue = if (isExpanded) 190.dp else 100.dp,
         animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
         label = "BlackCircleSize"
     )

@@ -9,12 +9,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.aitmobileproject.ui.screens.DashboardScreen
 import com.example.aitmobileproject.ui.screens.FlashcardsScreen
+import com.example.aitmobileproject.ui.screens.NoteTakerScreen
 import com.example.aitmobileproject.ui.theme.AITMobileProjectTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Edge-to-edge enabled but without the system UI overlay border
         setContent {
             AITMobileProjectTheme {
                 StudyAppNavHost()
@@ -29,11 +29,18 @@ fun StudyAppNavHost() {
     NavHost(navController = navController, startDestination = "dashboard") {
         composable("dashboard") {
             DashboardScreen(
-                onNavigateToFlashcards = { navController.navigate("flashcards") }
+                onNavigateToFlashcards = { navController.navigate("flashcards") },
+                onNavigateToNotes = { navController.navigate("notes") }
             )
         }
         composable("flashcards") {
             FlashcardsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToNotes = { navController.navigate("notes") }
+            )
+        }
+        composable("notes") {
+            NoteTakerScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
