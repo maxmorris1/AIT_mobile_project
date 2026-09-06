@@ -1,10 +1,12 @@
 package com.example.aitmobileproject.ui.screens
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.MediaRecorder
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
@@ -12,7 +14,9 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -33,15 +36,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.log10
-import kotlin.math.max
 
-enum class VisualizerState { IDLE, LISTENING }
+enum class NoteState { IDLE, LISTENING, PAUSED, PROCESSING, FINISHED }
 
 @Composable
 fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     
     // Time State
     var currentTime by remember { mutableStateOf(Calendar.getInstance()) }
@@ -58,8 +59,10 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission = it }
 
-    var vizState by remember { mutableStateOf(VisualizerState.IDLE) }
+    var noteState by remember { mutableStateOf(NoteState.IDLE) }
     var isMuted by remember { mutableStateOf(false) }
+    var transcript by remember { mutableStateOf("") }
+    var summaryText by remember { mutableStateOf("") }
 
     // Visualizer Values
     val baseHeight = 80f
@@ -71,42 +74,83 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
     val bars = listOf(bar1Height, bar2Height, bar3Height, bar4Height)
     val springSpec = spring<Float>(stiffness = 150f, dampingRatio = 0.8f)
 
-    // Audio Capture
-    LaunchedEffect(vizState, isMuted, hasPermission) {
-        if (vizState == VisualizerState.LISTENING && !isMuted && hasPermission) {
-            val sampleRate = 44100
-            val channelConfig = AudioFormat.CHANNEL_IN_MONO
-            val audioFormat = AudioFormat.ENCODING_PCM_16BIT
-            val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-            val audioRecord = AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, bufferSize)
-            
-            val buffer = ShortArray(bufferSize)
-            audioRecord.startRecording()
-            
-            try {
-                while (isActive && vizState == VisualizerState.LISTENING) {
-                    val read = audioRecord.read(buffer, 0, bufferSize)
-                    if (read > 0) {
-                        val chunk = read / 4
-                        for (i in 0 until 4) {
-                            var maxAbs = 0f
-                            for (j in (i * chunk) until ((i + 1) * chunk)) {
-                                maxAbs = max(maxAbs, abs(buffer[j].toFloat()))
-                            }
-                            val db = if (maxAbs > 0) 20 * log10(maxAbs / 32768f) else -60f
-                            val normalized = ((db + 60f) / 60f).coerceIn(0f, 1f)
-                            val targetHeight = baseHeight + (normalized * 220f)
-                            launch { bars[i].animateTo(targetHeight, springSpec) }
+    // Speech Recognizer setup
+    val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
+    val recognizerIntent = remember {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            speechRecognizer.destroy()
+        }
+    }
+
+    val recognitionListener = remember {
+        object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {
+                if (noteState == NoteState.LISTENING && !isMuted) {
+                    val normalized = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f)
+                    bars.forEachIndexed { index, anim ->
+                        scope.launch { 
+                            anim.animateTo(baseHeight + (normalized * (200f + index * 20f)), springSpec) 
                         }
                     }
-                    delay(50)
                 }
-            } finally {
-                audioRecord.stop()
-                audioRecord.release()
             }
-        } else {
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onError(error: Int) {
+                if (noteState == NoteState.LISTENING) {
+                    speechRecognizer.startListening(recognizerIntent)
+                }
+            }
+            override fun onResults(results: Bundle?) {
+                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                if (!matches.isNullOrEmpty()) {
+                    transcript += (if (transcript.isEmpty()) "" else " ") + matches[0]
+                }
+                if (noteState == NoteState.LISTENING) {
+                    speechRecognizer.startListening(recognizerIntent)
+                }
+            }
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        }
+    }
+
+    LaunchedEffect(noteState) {
+        if (noteState == NoteState.LISTENING) {
+            speechRecognizer.setRecognitionListener(recognitionListener)
+            speechRecognizer.startListening(recognizerIntent)
+        } else if (noteState == NoteState.PAUSED) {
+            speechRecognizer.stopListening()
             bars.forEach { anim -> launch { anim.animateTo(baseHeight, springSpec) } }
+        } else {
+            speechRecognizer.stopListening()
+            if (noteState == NoteState.IDLE || noteState == NoteState.FINISHED) {
+                bars.forEach { anim -> launch { anim.animateTo(baseHeight, springSpec) } }
+            }
+        }
+    }
+
+    LaunchedEffect(noteState) {
+        if (noteState == NoteState.PROCESSING) {
+            delay(2000) // Simulate AI Processing
+            summaryText = if (transcript.isBlank()) {
+                "No audio captured. Please try again."
+            } else {
+                "AI GENERATED NOTES:\n\n" + transcript.trim().capitalize(Locale.getDefault()) + ".\n\n" +
+                "Key Points:\n- " + transcript.split(" ").take(10).joinToString(" ") + "...\n" +
+                "- " + transcript.split(" ").drop(10).take(10).joinToString(" ") + "..."
+            }
+            noteState = NoteState.FINISHED
         }
     }
 
@@ -201,58 +245,99 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                     Box(modifier = Modifier.fillMaxSize().background(LightBeige, RoundedCornerShape(26.dp)))
                 }
 
-                val movingUpperBase = 160.dp.value
+                val movingUpperBase = 200.dp.value
 
-                // Columns 2-5 (Visualizer & White Bars)
-                bars.forEachIndexed { index, anim ->
-                    val isMiddle = index == 1 || index == 2
-                    
-                    val visualizerBottomPadding = if (isMiddle) {
-                        bottomLockedHeight + centerButtonHeight + columnGap
-                    } else {
-                        bottomLockedHeight + sideOffset + buttonHeight + columnGap
-                    }
-                    
-                    val currentBottomBarHeight = if (isMiddle) {
-                        bottomLockedHeight + columnGap
-                    } else {
-                        bottomLockedHeight + sideOffset + columnGap
-                    }
-                    
-                    Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                        val upperWhiteHeight = (movingUpperBase - (anim.value - baseHeight) * 0.55f).coerceIn(40f, 350f).dp
-
-                        // Moving elements (Top)
-                        Column(
+                // Columns 2-5
+                if (noteState == NoteState.FINISHED || noteState == NoteState.PROCESSING) {
+                    // Large Orange Box for Summary
+                    Box(
+                        modifier = Modifier
+                            .weight(4f)
+                            .fillMaxHeight()
+                            .padding(bottom = bottomLockedHeight + sideOffset + buttonHeight + columnGap)
+                    ) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = visualizerBottomPadding),
-                            verticalArrangement = Arrangement.spacedBy(columnGap)
+                                .fillMaxSize()
+                                .background(Orange, RoundedCornerShape(26.dp))
+                                .padding(20.dp),
+                            contentAlignment = Alignment.Center
                         ) {
+                            if (noteState == NoteState.PROCESSING) {
+                                Text(
+                                    "AI Processing...",
+                                    fontFamily = InstrumentSerifFontFamily,
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            } else {
+                                Column(
+                                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    Text(
+                                        summaryText,
+                                        fontFamily = InstrumentSerifFontFamily,
+                                        fontSize = 18.sp,
+                                        color = Color.Black,
+                                        lineHeight = 24.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    bars.forEachIndexed { index, anim ->
+                        val isMiddle = index == 1 || index == 2
+                        
+                        val visualizerBottomPadding = if (isMiddle) {
+                            bottomLockedHeight + centerButtonHeight + columnGap
+                        } else {
+                            bottomLockedHeight + sideOffset + buttonHeight + columnGap
+                        }
+                        
+                        val currentBottomBarHeight = if (isMiddle) {
+                            bottomLockedHeight + columnGap
+                        } else {
+                            bottomLockedHeight + sideOffset + columnGap
+                        }
+                        
+                        Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                            val upperWhiteHeight = (movingUpperBase - (anim.value - baseHeight) * 0.55f).coerceIn(40f, 350f).dp
+
+                            // Moving elements (Top)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = visualizerBottomPadding),
+                                verticalArrangement = Arrangement.spacedBy(columnGap)
+                            ) {
+                                Box(
+                                    modifier = Modifier.weight(1f).fillMaxWidth()
+                                        .background(LightBeige, RoundedCornerShape(topStart = topCornerRadius, topEnd = topCornerRadius, bottomStart = 26.dp, bottomEnd = 26.dp))
+                                )
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().height(anim.value.dp)
+                                        .background(Orange, RoundedCornerShape(26.dp))
+                                )
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .height(upperWhiteHeight + if (isMiddle) 0.dp else sideOffset)
+                                        .background(LightBeige, RoundedCornerShape(26.dp))
+                                )
+                            }
+
+                            // Stationary White Bars (Bottom)
                             Box(
-                                modifier = Modifier.weight(1f).fillMaxWidth()
-                                    .background(LightBeige, RoundedCornerShape(topStart = topCornerRadius, topEnd = topCornerRadius, bottomStart = 26.dp, bottomEnd = 26.dp))
-                            )
-                            Box(
-                                modifier = Modifier.fillMaxWidth().height(anim.value.dp)
-                                    .background(Orange, RoundedCornerShape(26.dp))
-                            )
-                            Box(
-                                modifier = Modifier.fillMaxWidth()
-                                    .height(upperWhiteHeight + if (isMiddle) 0.dp else sideOffset)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(currentBottomBarHeight)
+                                    .align(Alignment.BottomCenter)
                                     .background(LightBeige, RoundedCornerShape(26.dp))
                             )
                         }
-
-                        // Stationary White Bars (Bottom)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(currentBottomBarHeight)
-                                .align(Alignment.BottomCenter)
-                                .background(LightBeige, RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp, bottomStart = 26.dp, bottomEnd = 26.dp))
-                        )
                     }
                 }
 
@@ -277,10 +362,25 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                     horizontalArrangement = Arrangement.spacedBy(columnGap),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Pause Button
                     Box(
-                        modifier = Modifier.weight(1f).height(buttonHeight).background(Orange, RoundedCornerShape(26.dp)),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(buttonHeight)
+                            .background(Orange, RoundedCornerShape(26.dp))
+                            .clickable {
+                                if (noteState == NoteState.LISTENING) noteState = NoteState.PAUSED
+                                else if (noteState == NoteState.PAUSED) noteState = NoteState.LISTENING
+                            },
                         contentAlignment = Alignment.Center
-                    ) { Text("Type", fontFamily = InstrumentSerifFontFamily, fontSize = 16.sp, color = Color.Black) }
+                    ) { 
+                        Text(
+                            if (noteState == NoteState.PAUSED) "Resume" else "Pause", 
+                            fontFamily = InstrumentSerifFontFamily, 
+                            fontSize = 16.sp, 
+                            color = Color.Black
+                        ) 
+                    }
 
                     Box(
                         modifier = Modifier
@@ -288,15 +388,37 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             .height(centerButtonHeight)
                             .background(Orange, RoundedCornerShape(26.dp))
                             .clickable {
-                                if (!hasPermission) launcher.launch(Manifest.permission.RECORD_AUDIO)
-                                else vizState = if (vizState == VisualizerState.LISTENING) VisualizerState.IDLE else VisualizerState.LISTENING
+                                if (!hasPermission) {
+                                    launcher.launch(Manifest.permission.RECORD_AUDIO)
+                                } else {
+                                    when (noteState) {
+                                        NoteState.IDLE, NoteState.FINISHED -> {
+                                            transcript = ""
+                                            noteState = NoteState.LISTENING
+                                        }
+                                        NoteState.LISTENING, NoteState.PAUSED -> {
+                                            noteState = NoteState.PROCESSING
+                                        }
+                                        NoteState.PROCESSING -> {}
+                                    }
+                                }
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Taking", fontFamily = InstrumentSerifFontFamily, fontSize = 12.sp, color = Color.Black, textAlign = TextAlign.Center)
                             Text(
-                                if (vizState == VisualizerState.LISTENING) "Stop" else "Begin",
+                                if (noteState == NoteState.PROCESSING || noteState == NoteState.FINISHED) "New" else "Taking",
+                                fontFamily = InstrumentSerifFontFamily, 
+                                fontSize = 12.sp, 
+                                color = Color.Black, 
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                when (noteState) {
+                                    NoteState.LISTENING, NoteState.PAUSED -> "Stop"
+                                    NoteState.PROCESSING -> "..."
+                                    else -> "Begin"
+                                },
                                 fontFamily = InstrumentSerifFontFamily,
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
