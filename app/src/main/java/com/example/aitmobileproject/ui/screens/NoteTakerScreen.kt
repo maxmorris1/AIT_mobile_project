@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
@@ -33,7 +34,6 @@ import com.example.aitmobileproject.ui.components.Orange
 import com.example.aitmobileproject.ui.components.LightBeige
 import com.example.aitmobileproject.ui.theme.InstrumentSerifFontFamily
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -249,41 +249,118 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
 
                 // Columns 2-5
                 if (noteState == NoteState.FINISHED || noteState == NoteState.PROCESSING) {
-                    // Large Orange Box for Summary
-                    Box(
-                        modifier = Modifier
-                            .weight(4f)
-                            .fillMaxHeight()
-                            .padding(bottom = bottomLockedHeight + sideOffset + buttonHeight + columnGap)
-                    ) {
-                        Box(
+                    Box(modifier = Modifier.weight(4f).fillMaxHeight()) {
+                        // Top Content Column (Notes box and white bars)
+                        Column(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .background(Orange, RoundedCornerShape(26.dp))
-                                .padding(20.dp),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = bottomLockedHeight + centerButtonHeight + columnGap),
+                            verticalArrangement = Arrangement.spacedBy(columnGap)
                         ) {
-                            if (noteState == NoteState.PROCESSING) {
-                                Text(
-                                    "AI Processing...",
-                                    fontFamily = InstrumentSerifFontFamily,
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black
-                                )
-                            } else {
-                                Column(
-                                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-                                    horizontalAlignment = Alignment.Start
-                                ) {
-                                    Text(
-                                        summaryText,
-                                        fontFamily = InstrumentSerifFontFamily,
-                                        fontSize = 18.sp,
-                                        color = Color.Black,
-                                        lineHeight = 24.sp
+                            // Top White Bars (Separated into 4)
+                            Row(
+                                modifier = Modifier.fillMaxWidth().weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(columnGap)
+                            ) {
+                                repeat(4) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
+                                            .background(LightBeige, RoundedCornerShape(topStart = topCornerRadius, topEnd = topCornerRadius, bottomStart = 26.dp, bottomEnd = 26.dp))
                                     )
                                 }
+                            }
+
+                            // Orange Notes Box
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1.5f)
+                                    .background(Orange, RoundedCornerShape(26.dp))
+                                    .padding(20.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (noteState == NoteState.PROCESSING) {
+                                    Text(
+                                        "AI Processing...",
+                                        fontFamily = InstrumentSerifFontFamily,
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                } else {
+                                    Column(
+                                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Text(
+                                            summaryText,
+                                            fontFamily = InstrumentSerifFontFamily,
+                                            fontSize = 18.sp,
+                                            color = Color.Black,
+                                            lineHeight = 24.sp
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Bottom White Bars (Separated into 4, above buttons)
+                            Row(
+                                modifier = Modifier.fillMaxWidth().weight(0.8f),
+                                horizontalArrangement = Arrangement.spacedBy(columnGap)
+                            ) {
+                                repeat(4) { index ->
+                                    val isOuter = index == 0 || index == 3
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
+                                            .then(
+                                                if (isOuter) {
+                                                    Modifier.layout { measurable, constraints ->
+                                                        val extension = sideOffset.roundToPx()
+                                                        // Measure with extension but report original height to Row
+                                                        // This keeps the top edge fixed and makes it grow downwards
+                                                        val placeable = measurable.measure(
+                                                            constraints.copy(
+                                                                minHeight = constraints.maxHeight + extension,
+                                                                maxHeight = constraints.maxHeight + extension
+                                                            )
+                                                        )
+                                                        layout(placeable.width, constraints.maxHeight) {
+                                                            placeable.placeRelative(0, 0)
+                                                        }
+                                                    }
+                                                } else Modifier
+                                            )
+                                            .background(LightBeige, RoundedCornerShape(26.dp))
+                                    )
+                                }
+                            }
+                        }
+
+                        // Stationary White Bars (Bottom) - Below the buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
+                            horizontalArrangement = Arrangement.spacedBy(columnGap)
+                        ) {
+                            repeat(4) { index ->
+                                val isMiddle = index == 1 || index == 2
+                                val barHeight = if (isMiddle) {
+                                    bottomLockedHeight + columnGap - 3.dp
+                                } else {
+                                    bottomLockedHeight + sideOffset + columnGap
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(barHeight)
+                                        // Offset brought up slightly from 20dp to 16dp
+                                        .offset(y = if (isMiddle) 16.dp else 0.dp)
+                                        .background(LightBeige, RoundedCornerShape(26.dp))
+                                )
                             }
                         }
                     }
