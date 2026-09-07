@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun StudyAppNavHost() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "dashboard") {
+    NavHost(navController = navController, startDestination = "notes") {
         composable("dashboard") {
             DashboardScreen(
                 onNavigateToFlashcards = { navController.navigate("flashcards") },

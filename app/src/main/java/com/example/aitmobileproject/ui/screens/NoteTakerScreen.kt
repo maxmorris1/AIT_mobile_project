@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -37,7 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 
-enum class NoteState { IDLE, LISTENING, PAUSED, PROCESSING, FINISHED }
+enum class NoteState { IDLE, LISTENING, PAUSED, PROCESSING, MORPHING, FINISHED }
 
 @Composable
 fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
@@ -63,6 +64,10 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
     var isMuted by remember { mutableStateOf(false) }
     var transcript by remember { mutableStateOf("") }
     var summaryText by remember { mutableStateOf("") }
+    
+    val morphHeight = remember { Animatable(0f) }
+    val morphGap = remember { Animatable(2f) }
+    val morphAlpha = remember { Animatable(0f) }
 
     // Visualizer Values
     val baseHeight = 80f
@@ -126,7 +131,12 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
     }
 
     LaunchedEffect(noteState) {
-        if (noteState == NoteState.LISTENING) {
+        if (noteState == NoteState.LISTENING || noteState == NoteState.IDLE) {
+            // Reset animatables for a fresh start
+            scope.launch { morphHeight.snapTo(0f) }
+            scope.launch { morphGap.snapTo(2f) }
+            scope.launch { morphAlpha.snapTo(0f) }
+            
             speechRecognizer.setRecognitionListener(recognitionListener)
             speechRecognizer.startListening(recognizerIntent)
         } else if (noteState == NoteState.PAUSED) {
@@ -161,7 +171,11 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
 
             delay(4000) // Simulate AI Processing time for the animation
             animationJob.cancel()
-
+            
+            noteState = NoteState.MORPHING
+        }
+        
+        if (noteState == NoteState.MORPHING) {
             summaryText = if (transcript.isBlank()) {
                 "No audio captured. Please try again."
             } else {
@@ -169,7 +183,20 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                 "Key Points:\n- " + transcript.split(" ").take(10).joinToString(" ") + "...\n" +
                 "- " + transcript.split(" ").drop(10).take(10).joinToString(" ") + "..."
             }
+            
+            // Animation: Grow taller
+            launch {
+                morphHeight.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
+            }
+            // Animation: Morph into box (close gaps)
+            launch {
+                delay(600)
+                morphGap.animateTo(0f, tween(600, easing = LinearOutSlowInEasing))
+            }
+            
+            delay(1200)
             noteState = NoteState.FINISHED
+            morphAlpha.animateTo(1f, tween(500))
         }
     }
 
@@ -267,7 +294,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                 val movingUpperBase = 200.dp.value
 
                 // Columns 2-5
-                if (noteState == NoteState.FINISHED) {
+                if (noteState == NoteState.FINISHED || noteState == NoteState.MORPHING) {
                     Box(modifier = Modifier.weight(4f).fillMaxHeight()) {
                         // Top Content Column (Notes box and white bars)
                         Column(
@@ -277,7 +304,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                                 .padding(bottom = bottomLockedHeight + centerButtonHeight + columnGap),
                             verticalArrangement = Arrangement.spacedBy(columnGap)
                         ) {
-                            // Top White Bars (Separated into 4)
+                            // Top White Bars (Separated into 4) - Fixed gaps to preserve "lines" structure
                             Row(
                                 modifier = Modifier.fillMaxWidth().weight(0.7f),
                                 horizontalArrangement = Arrangement.spacedBy(columnGap)
@@ -292,26 +319,43 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                                 }
                             }
 
-                            // Orange Notes Box
+                            // Orange Notes Box / Morphing bars
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight(2.1f)
-                                    .background(Orange, RoundedCornerShape(26.dp))
-                                    .padding(20.dp),
-                                contentAlignment = Alignment.Center
+                                    .weight(2.1f),
+                                contentAlignment = Alignment.BottomCenter
                             ) {
-                                if (noteState == NoteState.PROCESSING) {
-                                    Text(
-                                        "AI Processing...",
-                                        fontFamily = InstrumentSerifFontFamily,
-                                        fontSize = 24.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.Black
-                                    )
-                                } else {
+                                // The morphing bars growing within the orange slot
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight(morphHeight.value),
+                                    horizontalArrangement = Arrangement.spacedBy(morphGap.value.dp)
+                                ) {
+                                    repeat(4) { index ->
+                                        // Animate internal corner radius based on the gap closing
+                                        // When gap is 2dp, radius is 26dp. When gap is 0dp, radius is 0dp.
+                                        val innerRadius = (morphGap.value * 13f).dp
+                                        val shape = when (index) {
+                                            0 -> RoundedCornerShape(topStart = 26.dp, bottomStart = 26.dp, topEnd = innerRadius, bottomEnd = innerRadius)
+                                            3 -> RoundedCornerShape(topEnd = 26.dp, bottomEnd = 26.dp, topStart = innerRadius, bottomStart = innerRadius)
+                                            else -> RoundedCornerShape(innerRadius)
+                                        }
+                                        
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxHeight()
+                                                .background(Orange, shape)
+                                        )
+                                    }
+                                }
+                                
+                                // Text Content (Fades in after morphing)
+                                if (noteState == NoteState.FINISHED) {
                                     Column(
-                                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                                        modifier = Modifier.fillMaxSize().padding(20.dp).graphicsLayer(alpha = morphAlpha.value).verticalScroll(rememberScrollState()),
                                         horizontalAlignment = Alignment.Start
                                     ) {
                                         Text(
@@ -340,8 +384,6 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                                                 if (isOuter) {
                                                     Modifier.layout { measurable, constraints ->
                                                         val extension = sideOffset.roundToPx()
-                                                        // Measure with extension but report original height to Row
-                                                        // This keeps the top edge fixed and makes it grow downwards
                                                         val placeable = measurable.measure(
                                                             constraints.copy(
                                                                 minHeight = constraints.maxHeight + extension,
@@ -495,7 +537,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                                         NoteState.LISTENING, NoteState.PAUSED -> {
                                             noteState = NoteState.PROCESSING
                                         }
-                                        NoteState.PROCESSING -> {}
+                                        NoteState.PROCESSING, NoteState.MORPHING -> {}
                                     }
                                 }
                             },
@@ -503,7 +545,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                if (noteState == NoteState.PROCESSING || noteState == NoteState.FINISHED) "New" else "Taking",
+                                if (noteState == NoteState.PROCESSING || noteState == NoteState.MORPHING || noteState == NoteState.FINISHED) "New" else "Taking",
                                 fontFamily = InstrumentSerifFontFamily, 
                                 fontSize = 12.sp, 
                                 color = Color.Black, 
@@ -512,7 +554,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             Text(
                                 when (noteState) {
                                     NoteState.LISTENING, NoteState.PAUSED -> "Stop"
-                                    NoteState.PROCESSING -> "..."
+                                    NoteState.PROCESSING, NoteState.MORPHING -> "..."
                                     else -> "Begin"
                                 },
                                 fontFamily = InstrumentSerifFontFamily,
