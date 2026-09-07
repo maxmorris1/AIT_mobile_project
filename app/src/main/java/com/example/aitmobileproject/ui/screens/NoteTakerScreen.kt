@@ -134,7 +134,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
             bars.forEach { anim -> launch { anim.animateTo(baseHeight, springSpec) } }
         } else {
             speechRecognizer.stopListening()
-            if (noteState == NoteState.IDLE || noteState == NoteState.FINISHED) {
+            if (noteState == NoteState.IDLE || noteState == NoteState.FINISHED || noteState == NoteState.PROCESSING) {
                 bars.forEach { anim -> launch { anim.animateTo(baseHeight, springSpec) } }
             }
         }
@@ -142,11 +142,30 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
 
     LaunchedEffect(noteState) {
         if (noteState == NoteState.PROCESSING) {
-            delay(2000) // Simulate AI Processing
+            delay(500) // Quicker rest (0.5s) before starting animation
+            
+            val animationJob = scope.launch {
+                val loadingSpec = tween<Float>(durationMillis = 800, easing = FastOutSlowInEasing)
+                while (noteState == NoteState.PROCESSING) {
+                    for (i in 3 downTo 0) {
+                        bars.forEachIndexed { idx, anim ->
+                            launch {
+                                if (idx == i) anim.animateTo(baseHeight + 140f, loadingSpec)
+                                else anim.animateTo(baseHeight, loadingSpec)
+                            }
+                        }
+                        delay(250) // Slower cycle to give bars time to extend
+                    }
+                }
+            }
+
+            delay(4000) // Simulate AI Processing time for the animation
+            animationJob.cancel()
+
             summaryText = if (transcript.isBlank()) {
                 "No audio captured. Please try again."
             } else {
-                "AI GENERATED NOTES:\n\n" + transcript.trim().capitalize(Locale.getDefault()) + ".\n\n" +
+                "AI GENERATED NOTES:\n\n" + transcript.trim().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } + ".\n\n" +
                 "Key Points:\n- " + transcript.split(" ").take(10).joinToString(" ") + "...\n" +
                 "- " + transcript.split(" ").drop(10).take(10).joinToString(" ") + "..."
             }
@@ -248,7 +267,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                 val movingUpperBase = 200.dp.value
 
                 // Columns 2-5
-                if (noteState == NoteState.FINISHED || noteState == NoteState.PROCESSING) {
+                if (noteState == NoteState.FINISHED) {
                     Box(modifier = Modifier.weight(4f).fillMaxHeight()) {
                         // Top Content Column (Notes box and white bars)
                         Column(
