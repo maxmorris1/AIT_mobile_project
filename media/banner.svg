@@ -1,10 +1,18 @@
-<svg width="800" height="200" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="800" height="200" rx="10" fill="#0F0F0F"/>
-  <circle cx="700" cy="100" r="150" fill="#FF8A00" fill-opacity="0.1"/>
-  <circle cx="750" cy="150" r="100" fill="#FF8A00" fill-opacity="0.2"/>
+<svg width="800" height="240" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="240" rx="16" fill="#0F0F0F"/>
 
-  <text x="40" y="125" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">HAJIO</text>
+  <!-- Logo Symbol -->
+  <g transform="translate(60, 40) scale(0.35)">
+    <rect x="0" y="0" width="128" height="384" rx="64" fill="#FFF9F0"/>
+    <rect x="160" y="0" width="128" height="128" rx="48" fill="#FF8A00"/>
+    <rect x="160" y="160" width="128" height="224" rx="64" fill="#FFF9F0"/>
+  </g>
 
-  <rect x="740" y="20" width="40" height="40" rx="8" fill="#FF8A00"/>
-  <path d="M750 30 C755 30, 755 40, 760 40 C765 40, 765 30, 770 30" stroke="black" stroke-width="3" fill="none"/>
+  <!-- Text -->
+  <text x="220" y="145" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" letter-spacing="4">HAJIO</text>
+  <text x="222" y="180" font-family="Arial, sans-serif" font-size="18" font-weight="normal" fill="#FF8A00" letter-spacing="8">PRODUCTIVITY SUITE</text>
+
+  <!-- Accent circles -->
+  <circle cx="720" cy="120" r="100" fill="#FF8A00" fill-opacity="0.05"/>
+  <circle cx="760" cy="180" r="60" fill="#FF8A00" fill-opacity="0.1"/>
 </svg>
