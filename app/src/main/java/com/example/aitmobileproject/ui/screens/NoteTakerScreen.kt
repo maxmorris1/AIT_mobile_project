@@ -102,9 +102,26 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
             override fun onRmsChanged(rmsdB: Float) {
                 if (noteState == NoteState.LISTENING && !isMuted) {
                     val normalized = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f)
+                    
+                    // Create distinct "channel" values by adding slight variation to each bar
+                    val targets = List(4) { index ->
+                        // Add a small pseudo-random variation based on current time and index
+                        val variation = (Math.sin(System.currentTimeMillis() / 100.0 + index) * 15f).toFloat()
+                        baseHeight + (normalized * (200f + index * 10f)) + variation
+                    }
+                    
+                    // Identify the "loudest" channel
+                    val maxIndex = targets.indices.maxBy { targets[it] }
+                    
                     bars.forEachIndexed { index, anim ->
-                        scope.launch { 
-                            anim.animateTo(baseHeight + (normalized * (200f + index * 20f)), springSpec) 
+                        scope.launch {
+                            val finalTarget = if (index == maxIndex) {
+                                targets[index] // Highlighted
+                            } else {
+                                // Dim the other bars to make the loudest one stand out
+                                baseHeight + (targets[index] - baseHeight) * 0.65f
+                            }
+                            anim.animateTo(finalTarget, springSpec)
                         }
                     }
                 }
@@ -172,6 +189,10 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
             delay(4000) // Simulate AI Processing time for the animation
             animationJob.cancel()
             
+            // Rest bars for 0.5 seconds before morphing
+            bars.forEach { anim -> launch { anim.animateTo(baseHeight, springSpec) } }
+            delay(500)
+            
             noteState = NoteState.MORPHING
         }
         
@@ -196,6 +217,9 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
             
             delay(1200)
             noteState = NoteState.FINISHED
+        }
+
+        if (noteState == NoteState.FINISHED) {
             morphAlpha.animateTo(1f, tween(500))
         }
     }
@@ -227,8 +251,8 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             AnimatedContent(
                                 targetState = currentTime.get(Calendar.HOUR_OF_DAY),
                                 transitionSpec = {
-                                    (slideInVertically { height -> -height } + fadeIn()).togetherWith(
-                                        slideOutVertically { height -> height } + fadeOut()
+                                    (slideInVertically(animationSpec = tween(200)) { height -> -height } + fadeIn(animationSpec = tween(200))).togetherWith(
+                                        slideOutVertically(animationSpec = tween(200)) { height -> height } + fadeOut(animationSpec = tween(200))
                                     )
                                 },
                                 label = "HourAnimation"
@@ -253,7 +277,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                                 AnimatedContent(
                                     targetState = tens,
                                     transitionSpec = {
-                                        (slideInVertically(animationSpec = tween(durationMillis = 500, delayMillis = 1000)) { height -> -height } + fadeIn(animationSpec = tween(delayMillis = 1000))).togetherWith(
+                                        (slideInVertically(animationSpec = tween(durationMillis = 500, delayMillis = 500)) { height -> -height } + fadeIn(animationSpec = tween(delayMillis = 500))).togetherWith(
                                             slideOutVertically(animationSpec = tween(durationMillis = 500)) { height -> height } + fadeOut()
                                         )
                                     },
@@ -305,7 +329,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             verticalArrangement = Arrangement.spacedBy(columnGap)
                         ) {
                             // Top White Bars (Separated into 4) - Fixed gaps to preserve "lines" structure
-                            val topWeight = 1.9f - (1.2f * morphHeight.value)
+                            val topWeight = 1.51f - (0.81f * morphHeight.value)
                             Row(
                                 modifier = Modifier.fillMaxWidth().weight(topWeight),
                                 horizontalArrangement = Arrangement.spacedBy(columnGap)
@@ -321,7 +345,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             }
 
                             // Orange Notes Box / Morphing bars
-                            val orangeWeight = 0.2f + (1.9f * morphHeight.value)
+                            val orangeWeight = 0.52f + (1.58f * morphHeight.value)
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -355,7 +379,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                                 }
                                 
                                 // Text Content (Fades in after morphing)
-                                if (noteState == NoteState.FINISHED) {
+                                if (noteState == NoteState.FINISHED || noteState == NoteState.MORPHING) {
                                     Column(
                                         modifier = Modifier.fillMaxSize().padding(20.dp).graphicsLayer(alpha = morphAlpha.value).verticalScroll(rememberScrollState()),
                                         horizontalAlignment = Alignment.Start
@@ -372,7 +396,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             }
 
                             // Bottom White Bars (Separated into 4, above buttons)
-                            val bottomWeight = 1.2f - (0.7f * morphHeight.value)
+                            val bottomWeight = 1.27f - (0.77f * morphHeight.value)
                             Row(
                                 modifier = Modifier.fillMaxWidth().weight(bottomWeight),
                                 horizontalArrangement = Arrangement.spacedBy(columnGap)
