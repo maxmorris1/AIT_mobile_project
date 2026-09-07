@@ -279,7 +279,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                         ) {
                             // Top White Bars (Separated into 4)
                             Row(
-                                modifier = Modifier.fillMaxWidth().weight(1f),
+                                modifier = Modifier.fillMaxWidth().weight(0.7f),
                                 horizontalArrangement = Arrangement.spacedBy(columnGap)
                             ) {
                                 repeat(4) {
@@ -296,7 +296,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight(1.5f)
+                                    .weight(2.1f)
                                     .background(Orange, RoundedCornerShape(26.dp))
                                     .padding(20.dp),
                                 contentAlignment = Alignment.Center
@@ -327,7 +327,7 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
 
                             // Bottom White Bars (Separated into 4, above buttons)
                             Row(
-                                modifier = Modifier.fillMaxWidth().weight(0.8f),
+                                modifier = Modifier.fillMaxWidth().weight(0.5f),
                                 horizontalArrangement = Arrangement.spacedBy(columnGap)
                             ) {
                                 repeat(4) { index ->
