@@ -25,7 +25,7 @@ import com.example.aitmobileproject.ui.components.UpdateDialog
 import com.example.aitmobileproject.ui.screens.DashboardScreen
 import com.example.aitmobileproject.ui.screens.FlashcardsScreen
 import com.example.aitmobileproject.ui.screens.NoteTakerScreen
-import com.example.aitmobileproject.ui.theme.AITMobileProjectTheme
+import com.example.aitmobileproject.ui.theme.HajioTheme
 import com.example.aitmobileproject.ui.viewmodel.UpdateState
 import com.example.aitmobileproject.ui.viewmodel.UpdateViewModel
 import java.io.File
@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AITMobileProjectTheme {
+            HajioTheme {
                 val updateState by updateViewModel.state
                 
                 LaunchedEffect(Unit) {

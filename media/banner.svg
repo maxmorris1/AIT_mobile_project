@@ -3,8 +3,7 @@
   <circle cx="700" cy="100" r="150" fill="#FF8A00" fill-opacity="0.1"/>
   <circle cx="750" cy="150" r="100" fill="#FF8A00" fill-opacity="0.2"/>
 
-  <text x="40" y="110" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white">AIT MOBILE</text>
-  <text x="40" y="150" font-family="Arial, sans-serif" font-size="24" font-weight="normal" fill="#FF8A00" letter-spacing="4">PROJECT</text>
+  <text x="40" y="125" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">HAJIO</text>
 
   <rect x="740" y="20" width="40" height="40" rx="8" fill="#FF8A00"/>
   <path d="M750 30 C755 30, 755 40, 760 40 C765 40, 765 30, 770 30" stroke="black" stroke-width="3" fill="none"/>

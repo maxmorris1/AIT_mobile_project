@@ -1,22 +1,22 @@
 <div align="center">
 
-# AIT Mobile Project
+# Hajio
 **A High-Performance Study and Productivity Suite for Android**
 
-[![Latest Release](https://img.shields.io/github/v/release/maxmorris1/AIT_mobile_project?style=for-the-badge&color=orange)](https://github.com/maxmorris1/AIT_mobile_project/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/maxmorris1/AIT_mobile_project/android.yml?branch=main&style=for-the-badge)](https://github.com/maxmorris1/AIT_mobile_project/actions)
+[![Latest Release](https://img.shields.io/github/v/release/maxmorris1/Hajio?style=for-the-badge&color=orange)](https://github.com/maxmorris1/Hajio/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/maxmorris1/Hajio/android.yml?branch=main&style=for-the-badge)](https://github.com/maxmorris1/Hajio/actions)
 [![Platform](https://img.shields.io/badge/Platform-Android-green?style=for-the-badge)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-purple?style=for-the-badge)](https://kotlinlang.org)
 
 ---
 
-![AIT Mobile Project Banner](media/banner.svg)
+![Hajio Banner](media/banner.svg)
 
 </div>
 
 ## Overview
 
-The AIT Mobile Project is an Android-native application designed to streamline the academic workflow. It integrates advanced note-taking, a geometric flashcard system, and an intuitive custom navigation interface to provide a cohesive productivity environment.
+Hajio is an Android-native application designed to streamline the academic workflow. It integrates advanced note-taking, a geometric flashcard system, and an intuitive custom navigation interface to provide a cohesive productivity environment.
 
 ## Key Features
 
@@ -44,7 +44,7 @@ A streamlined interface for capturing and organizing academic content, built on 
 ## Installation
 
 ### For Users
-1.  Navigate to the [Releases](https://github.com/maxmorris1/AIT_mobile_project/releases) page.
+1.  Navigate to the [Releases](https://github.com/maxmorris1/Hajio/releases) page.
 2.  Download the latest `app-debug.apk`.
 3.  Open the file on your Android device.
 4.  If prompted, allow "Installation from unknown sources" for your file manager or browser.
@@ -52,7 +52,7 @@ A streamlined interface for capturing and organizing academic content, built on 
 ### For Developers
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/maxmorris1/AIT_mobile_project.git
+    git clone https://github.com/maxmorris1/Hajio.git
     ```
 2.  Open the project in **Android Studio (Ladybug or newer)**.
 3.  Sync the project with Gradle files.
@@ -61,8 +61,8 @@ A streamlined interface for capturing and organizing academic content, built on 
 ## Project Links
 
 *   [Documentation](docs/README.md)
-*   [Report an Issue](https://github.com/maxmorris1/AIT_mobile_project/issues)
-*   [Latest APK](https://github.com/maxmorris1/AIT_mobile_project/releases/latest)
+*   [Report an Issue](https://github.com/maxmorris1/Hajio/issues)
+*   [Latest APK](https://github.com/maxmorris1/Hajio/releases/latest)
 
 ## License
 Distributed under the MIT License. See `LICENSE` for more information.
@@ -71,6 +71,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 <div align="center">
 
-[![Star Tracker](https://img.shields.io/github/stars/maxmorris1/AIT_mobile_project?style=social)](https://github.com/maxmorris1/AIT_mobile_project)
+[![Star Tracker](https://img.shields.io/github/stars/maxmorris1/Hajio?style=social)](https://github.com/maxmorris1/Hajio)
 
 </div>

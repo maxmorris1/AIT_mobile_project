@@ -7,7 +7,7 @@ import java.io.IOException
 
 class UpdateChecker(private val client: OkHttpClient = OkHttpClient()) {
     private val json = Json { ignoreUnknownKeys = true }
-    private val repoUrl = "https://api.github.com/repos/maxmorris1/AIT_mobile_project/releases/latest"
+    private val repoUrl = "https://api.github.com/repos/maxmorris1/Hajio/releases/latest"
 
     suspend fun checkForUpdate(): GitHubRelease? {
         val request = Request.Builder()

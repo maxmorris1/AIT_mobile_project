@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AIT mobile project"
+rootProject.name = "Hajio"
 include(":app")

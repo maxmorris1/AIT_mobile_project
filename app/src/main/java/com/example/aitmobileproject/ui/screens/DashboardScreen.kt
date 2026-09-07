@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.aitmobileproject.ui.components.*
-import com.example.aitmobileproject.ui.theme.AITMobileProjectTheme
+import com.example.aitmobileproject.ui.theme.HajioTheme
 
 @Composable
 fun DashboardScreen(
@@ -113,7 +113,7 @@ fun DashboardScreen(
 @Preview(showBackground = true)
 @Composable
 fun DashboardPreview() {
-    AITMobileProjectTheme {
+    HajioTheme {
         DashboardScreen()
     }
 }
