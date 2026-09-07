@@ -305,8 +305,9 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             verticalArrangement = Arrangement.spacedBy(columnGap)
                         ) {
                             // Top White Bars (Separated into 4) - Fixed gaps to preserve "lines" structure
+                            val topWeight = 1.9f - (1.2f * morphHeight.value)
                             Row(
-                                modifier = Modifier.fillMaxWidth().weight(0.7f),
+                                modifier = Modifier.fillMaxWidth().weight(topWeight),
                                 horizontalArrangement = Arrangement.spacedBy(columnGap)
                             ) {
                                 repeat(4) {
@@ -320,17 +321,18 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             }
 
                             // Orange Notes Box / Morphing bars
+                            val orangeWeight = 0.2f + (1.9f * morphHeight.value)
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight(2.1f),
-                                contentAlignment = Alignment.BottomCenter
+                                    .weight(orangeWeight),
+                                contentAlignment = Alignment.Center
                             ) {
                                 // The morphing bars growing within the orange slot
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .fillMaxHeight(morphHeight.value),
+                                        .fillMaxHeight(),
                                     horizontalArrangement = Arrangement.spacedBy(morphGap.value.dp)
                                 ) {
                                     repeat(4) { index ->
@@ -370,8 +372,9 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
                             }
 
                             // Bottom White Bars (Separated into 4, above buttons)
+                            val bottomWeight = 1.2f - (0.7f * morphHeight.value)
                             Row(
-                                modifier = Modifier.fillMaxWidth().weight(0.5f),
+                                modifier = Modifier.fillMaxWidth().weight(bottomWeight),
                                 horizontalArrangement = Arrangement.spacedBy(columnGap)
                             ) {
                                 repeat(4) { index ->
