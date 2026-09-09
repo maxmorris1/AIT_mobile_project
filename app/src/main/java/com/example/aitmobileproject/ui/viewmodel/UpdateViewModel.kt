@@ -34,6 +34,8 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _state = mutableStateOf<UpdateState>(UpdateState.Idle)
     val state: State<UpdateState> = _state
+    
+    private var dismissedVersion: String? = null
 
     fun checkForUpdates() {
         _state.value = UpdateState.Checking
@@ -46,9 +48,14 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
 
             withContext(Dispatchers.Main) {
                 if (latestRelease != null) {
-                    val currentVersion = BuildConfig.VERSION_NAME
-                    val latestVersion = latestRelease.tagName.removePrefix("v")
+                    val currentVersion = BuildConfig.VERSION_NAME.trim()
+                    val latestVersion = latestRelease.tagName.removePrefix("v").trim()
                     
+                    if (latestVersion == dismissedVersion) {
+                        _state.value = UpdateState.Idle
+                        return@withContext
+                    }
+
                     if (isNewerVersion(currentVersion, latestVersion)) {
                         _state.value = UpdateState.UpdateAvailable(latestRelease)
                     } else {
@@ -62,14 +69,17 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun isNewerVersion(current: String, latest: String): Boolean {
-        val currentParts = current.split(".").mapNotNull { it.toIntOrNull() }
-        val latestParts = latest.split(".").mapNotNull { it.toIntOrNull() }
+        val currentParts = current.split(".").map { it.filter { c -> c.isDigit() }.toIntOrNull() ?: 0 }
+        val latestParts = latest.split(".").map { it.filter { c -> c.isDigit() }.toIntOrNull() ?: 0 }
         
-        for (i in 0 until min(currentParts.size, latestParts.size)) {
-            if (latestParts[i] > currentParts[i]) return true
-            if (latestParts[i] < currentParts[i]) return false
+        val maxLength = maxOf(currentParts.size, latestParts.size)
+        for (i in 0 until maxLength) {
+            val c = if (i < currentParts.size) currentParts[i] else 0
+            val l = if (i < latestParts.size) latestParts[i] else 0
+            if (l > c) return true
+            if (l < c) return false
         }
-        return latestParts.size > currentParts.size
+        return false
     }
 
     fun downloadUpdate(release: GitHubRelease) {
@@ -124,6 +134,9 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     }
     
     fun dismissUpdate() {
+        if (_state.value is UpdateState.UpdateAvailable) {
+            dismissedVersion = (_state.value as UpdateState.UpdateAvailable).release.tagName.removePrefix("v").trim()
+        }
         _state.value = UpdateState.Idle
     }
 }

@@ -27,7 +27,8 @@ import kotlin.math.*
 @Composable
 fun FlashcardsScreen(
     onNavigateBack: () -> Unit = {},
-    onNavigateToNotes: () -> Unit = {}
+    onNavigateToNotes: () -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
     var isShowingAnswer by remember { mutableStateOf(false) }
     val cornerRadius = 26.dp
@@ -259,6 +260,7 @@ fun FlashcardsScreen(
                 onClick = { onNavigateBack() },
                 onActionSelected = { actionId ->
                     if (actionId == "notes") onNavigateToNotes()
+                    else if (actionId == "profile") onProfileClick()
                     else if (actionId != "flashcards") onNavigateBack()
                 }
             )

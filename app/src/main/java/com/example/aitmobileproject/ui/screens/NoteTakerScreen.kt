@@ -41,7 +41,10 @@ import java.util.*
 enum class NoteState { IDLE, LISTENING, PAUSED, PROCESSING, MORPHING, FINISHED }
 
 @Composable
-fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
+fun NoteTakerScreen(
+    onNavigateBack: () -> Unit = {},
+    onProfileClick: () -> Unit = {}
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -610,7 +613,10 @@ fun NoteTakerScreen(onNavigateBack: () -> Unit = {}) {
             NavWheel(
                 modifier = Modifier.align(Alignment.BottomStart),
                 onClick = { onNavigateBack() },
-                onActionSelected = { if (it != "notes") onNavigateBack() }
+                onActionSelected = { 
+                    if (it == "profile") onProfileClick()
+                    else if (it != "notes") onNavigateBack()
+                }
             )
         }
     }

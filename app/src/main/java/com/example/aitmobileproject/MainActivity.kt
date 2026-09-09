@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,9 +24,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.aitmobileproject.ui.components.UpdateDialog
+import com.example.aitmobileproject.data.local.AuthManager
 import com.example.aitmobileproject.ui.screens.DashboardScreen
 import com.example.aitmobileproject.ui.screens.FlashcardsScreen
 import com.example.aitmobileproject.ui.screens.NoteTakerScreen
+import com.example.aitmobileproject.ui.screens.SignInScreen
+import com.example.aitmobileproject.ui.screens.QuizScreen
+import com.example.aitmobileproject.ui.screens.AccountScreen
 import com.example.aitmobileproject.ui.theme.HajioTheme
 import com.example.aitmobileproject.ui.viewmodel.UpdateState
 import com.example.aitmobileproject.ui.viewmodel.UpdateViewModel
@@ -80,21 +86,66 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun StudyAppNavHost() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "flashcards") {
+    val context = LocalContext.current
+    val authManager = remember { AuthManager(context) }
+
+    NavHost(navController = navController, startDestination = "dashboard") {
+        composable("signIn") {
+            SignInScreen(
+                onSignInSuccess = { 
+                    navController.navigate("dashboard") {
+                        popUpTo("signIn") { inclusive = true }
+                    }
+                },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         composable("dashboard") {
             DashboardScreen(
                 onNavigateToFlashcards = { navController.navigate("flashcards") },
-                onNavigateToNotes = { navController.navigate("notes") }
+                onNavigateToNotes = { navController.navigate("notes") },
+                onNavigateToQuiz = { navController.navigate("quiz") },
+                onProfileClick = {
+                    if (authManager.isLoggedIn()) {
+                        navController.navigate("account")
+                    } else {
+                        navController.navigate("signIn")
+                    }
+                }
+            )
+        }
+        composable("account") {
+            AccountScreen(
+                onLogout = {
+                    authManager.logout()
+                    navController.navigate("dashboard") {
+                        popUpTo("account") { inclusive = true }
+                    }
+                },
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable("flashcards") {
             FlashcardsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToNotes = { navController.navigate("notes") }
+                onNavigateToNotes = { navController.navigate("notes") },
+                onProfileClick = {
+                    if (authManager.isLoggedIn()) navController.navigate("account")
+                    else navController.navigate("signIn")
+                }
             )
         }
         composable("notes") {
             NoteTakerScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onProfileClick = {
+                    if (authManager.isLoggedIn()) navController.navigate("account")
+                    else navController.navigate("signIn")
+                }
+            )
+        }
+        composable("quiz") {
+            QuizScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

@@ -1,6 +1,7 @@
 package com.example.aitmobileproject.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -16,7 +17,9 @@ import com.example.aitmobileproject.ui.theme.HajioTheme
 @Composable
 fun DashboardScreen(
     onNavigateToFlashcards: () -> Unit = {},
-    onNavigateToNotes: () -> Unit = {}
+    onNavigateToNotes: () -> Unit = {},
+    onNavigateToQuiz: () -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -80,11 +83,13 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth().height(235.dp)
                     )
 
-                    Box(
+                    ActionTile(
+                        subtitle = "Start",
+                        title = "Practice\nQuiz",
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                            .background(LightBeige, RoundedCornerShape(26.dp))
+                            .clickable { onNavigateToQuiz() }
                     )
                 }
             }
@@ -104,6 +109,7 @@ fun DashboardScreen(
                 onActionSelected = { actionId ->
                     if (actionId == "flashcards") onNavigateToFlashcards()
                     else if (actionId == "notes") onNavigateToNotes()
+                    else if (actionId == "profile") onProfileClick()
                 }
             )
         }
